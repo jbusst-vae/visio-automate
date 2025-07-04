@@ -1,12 +1,7 @@
 Attribute VB_Name = "lib"
 
 
-Public  Sub test()
-    Debug.Print "Start debug out"
-    Debug.Print CStr(fileExists(ThisWorkbook.Path & "/vba-files/runVisio.bas"))
-    Debug.Print CStr(fileExists(ThisWorkbook.Path & "/vba-files/runVisio"))
-End Sub
-    
+
 Public Sub PrintArr(arr As Variant)
     Debug.Print "Arr: " & Join(arr, ", ")
 End Sub
