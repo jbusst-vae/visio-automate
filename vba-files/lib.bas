@@ -6,6 +6,14 @@ Public  Sub test()
     Debug.Print CStr(fileExists(ThisWorkbook.Path & "/vba-files/runVisio.bas"))
     Debug.Print CStr(fileExists(ThisWorkbook.Path & "/vba-files/runVisio"))
 End Sub
+    
+Public Sub PrintArr(arr As Variant)
+    Debug.Print "Arr: " & Join(arr, ", ")
+End Sub
+
+Public Sub Sleep(seconds As Double)
+    Application.Wait Now + TimeSerial(0, 0, seconds)
+End Sub
 
 Function fileExists(ByVal path As String) As Boolean
     'Only works for a COMPLETE path

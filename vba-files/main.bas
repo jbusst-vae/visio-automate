@@ -1,4 +1,4 @@
-Attribute VB_Name = "claude"
+Attribute VB_Name = "main"
 
 
 Public  Sub Main()
@@ -14,22 +14,33 @@ Public  Sub Main()
     Set visApp = GetObject(, "Visio.Application")
     If visApp Is Nothing Then
         Set visApp = CreateObject("Visio.Application")
+        Set visDoc = visApp.Documents.Add("")
+        Set visPage = visDoc.Pages(1)
+        GoTo Run
     End If
+    On Error GoTo 0
     
-    ' Make Visio visible
-    visApp.Visible = True
-    
-    ' Create a new blank document
-    Set visDoc = visApp.Documents.Add("")
-    Set visPage = visDoc.Pages(1)
-    
-    ' Set page properties (optional)
-    visPage.Name = "Wiring Diagram"
+     ' Get the active document
+    If visApp.Documents.Count = 0 Then
+        MsgBox "No open Visio document found. Please open one.", vbExclamation
+        Exit Sub
+    End If
+    Set visDoc = visApp.ActiveDocument
 
+    ' Get the active page
+    If visDoc.Pages.Count = 0 Then
+        MsgBox "No pages found in the active document.", vbExclamation
+        Exit Sub
+    End If
+    Set visPage = visApp.ActivePage
+
+    Run:
+    visApp.Visible = True
+    ClearPage visPage
     CreateDiagramFromExcelData visApp, visPage
 End Sub
 
-Sub CreateBasicWiringDiagram()
+Sub SampleDiagram()
     ' Declare Visio application and document objects
     Dim visApp As Visio.Application
     Dim visDoc As Visio.Document
@@ -116,7 +127,29 @@ ErrorHandler:
     
 End Sub
 
-Function AddConnectionPoint(shape As Visio.Shape, x As Double, y As Double) As Integer
+Sub ClearVisio(visDoc As Visio.Document)
+    Dim visPage As Visio.Page
+
+    ' Delete all pages except one
+    Do While visDoc.Pages.Count > 1
+        visDoc.Pages(visDoc.Pages.Count).Delete
+    Loop
+
+    ' Clear the shapes on the remaining page
+    Set visPage = visDoc.Pages(1)
+
+    ClearPage visPage
+End Sub
+
+Sub ClearPage(page As Visio.Page)
+    Dim i As Integer
+
+    For i = page.Shapes.Count To 1 Step -1
+        page.Shapes(i).Delete
+    Next i
+End Sub
+
+Function AddCPoint(shape As Visio.Shape, x As Double, y As Double) As Integer
     ' Add a connection point at specified coordinates relative to shape
     Dim connectionRow As Integer
     connectionRow = shape.AddRow(visSectionConnectionPts, visRowLast, visTagDefault)
@@ -125,13 +158,13 @@ Function AddConnectionPoint(shape As Visio.Shape, x As Double, y As Double) As I
     shape.CellsSRC(visSectionConnectionPts, connectionRow, visCnnctX).Formula = x
     shape.CellsSRC(visSectionConnectionPts, connectionRow, visCnnctY).Formula = y
     
-    AddConnectionPoint = connectionRow
+    Connect = connectionRow
 End Function
 
 ' Function to create a custom module shape with specific pin labels
-Function CreateModuleShape(ByRef page As Visio.Page, left As Double, bottom As Double, _
-                          width As Double, height As Double, moduleName As String, _
-                          pinLabels As Variant) As Visio.Shape
+Function NewShape(ByRef page As Visio.Page, left As Double, bottom As Double, _
+                           width As Double, height As Double, moduleName As String, _
+                           pinLabels As Variant) As Visio.Shape
 
     Dim moduleShape As Visio.Shape
     Set moduleShape = page.DrawRectangle(left, bottom, left + width, bottom + height)
@@ -148,10 +181,11 @@ Function CreateModuleShape(ByRef page As Visio.Page, left As Double, bottom As D
     If IsArray(pinLabels) Then
         Dim i As Integer
         Dim pinShape As Visio.Shape
+
         For i = 0 To UBound(pinLabels)
             ' Create small rectangles for pins along the right edge
             Set pinShape = page.DrawRectangle(left + width, bottom + (i * 0.3), _
-                                            left + width + 0.5, bottom + (i * 0.3) + 0.2)
+                                              left + width + 0.5, bottom + (i * 0.3) + 0.2)
             With pinShape
                 .Text = pinLabels(i)
                 .CellsU("FillForegnd").Formula = "RGB(255,255,255)"
@@ -162,17 +196,14 @@ Function CreateModuleShape(ByRef page As Visio.Page, left As Double, bottom As D
         Next i
     End If
     
-    Set CreateModuleShape = moduleShape
+    Set Shape = moduleShape
 End Function
 
 ' Example of how to read data from Excel and create diagram
 Sub CreateDiagramFromExcelData(visApp As Visio.Application, page As Visio.Page)
-    ' This is a template for reading Excel data
-    ' Assumes you have a worksheet with columns: Module1, Pin1, Module2, Pin2, WireLabel
-    
     Dim ws As Worksheet
     Dim lastRow As Long
-    Dim i As Long
+    Dim i As Double
     Dim shape As Visio.Shape
     
     ' Set reference to your Excel worksheet
@@ -180,25 +211,14 @@ Sub CreateDiagramFromExcelData(visApp As Visio.Application, page As Visio.Page)
     lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
     
     For i = 2 To lastRow ' Assuming row 1 has headers
-        Dim module1Name As String, pin1Name As String
-        Dim module2Name As String, pin2Name As String
-        Dim wireLabel As String
+        Dim moduleName As String
         
-        module1Name = ws.Cells(i, 1).Value ' Column A
-        pin1Name = ws.Cells(i, 2).Value    ' Column B
-        module2Name = ws.Cells(i, 3).Value ' Column C
-        pin2Name = ws.Cells(i, 4).Value    ' Column D
-        wireLabel = ws.Cells(i, 5).Value   ' Column E
+        moduleName  = CStr(ws.Cells(i, 1).Value)
+        inputPins   = Split(CStr(ws.Cells(i, 2).Value), ", ")
+        outputPins  = Split(CStr(ws.Cells(i, 3).Value), ", ")
+        connections = Split(CStr(ws.Cells(i, 4).Value), ", ")
 
-        Debug.Print module1Name
-        
-        ' Here you would create/find the modules and connect them
-        ' This is where you'd implement your specific logic
-        Dim pinLabels As Variant
-        pinLabels = Array(pin1Name, pin2Name)
-
-
-        Set shape = CreateModuleShape(page, i*10, i*10, 5, 5, module1Name, pinLabels)
+        Set shape = NewShape(page, i, i, 0.5, 0.5, moduleName, inputPins)
     Next i
 
     ' Auto-fit page to content
@@ -207,5 +227,5 @@ Sub CreateDiagramFromExcelData(visApp As Visio.Application, page As Visio.Page)
     ' Zoom to fit the page
     visApp.ActiveWindow.ViewFit = visFitPage
 
-    MsgBox "Wiring diagram successfully created!",,"title" 
+    ' MsgBox "Wiring diagram successfully created!",,"title" 
 End Sub
