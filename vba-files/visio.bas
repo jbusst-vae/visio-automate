@@ -2,7 +2,7 @@ Attribute VB_Name = "visio"
 
 
 
-Sub ClearVisio(visDoc As Visio.Document)
+Public Sub ClearVisio(visDoc As Visio.Document)
     Dim visPage As Visio.Page
 
     ' Delete all pages except one

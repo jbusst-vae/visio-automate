@@ -9,13 +9,29 @@ Public Type VApp
 End Type
 
 
-
-
 Public Sub Main()
     Dim vis As VApp
     vis = GetVisio()
 
-    ExcelDiagram vis.app, vis.page
+    ' ExcelDiagram vis.app, vis.page
+
+    Dim shape1 As Visio.Shape, shape2 As Visio.Shape
+    Set shape1 = NewShape(vis.page, 0, 1, 1, 1, "shape 1")
+
+    For i = 0 To 4
+        AddCPoint shape1, 1, i*0.2
+    Next i
+
+    Set shape2 = NewShape(vis.page, 5, 4, 1, 1, "shape 2")
+
+    For i = 0 To 4
+        AddCPoint shape2, 0, i*0.2
+    Next i
+    
+    Connect1 shape1, shape2, "right", 1, 1
+    Connect1 shape1, shape2, "right", 1, 2
+    Connect1 shape1, shape2, "right", 3, 3
+    Connect1 shape1, shape2, "right", 4, 4
 End Sub
 
 Sub SampleDiagram()
