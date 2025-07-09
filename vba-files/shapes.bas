@@ -69,6 +69,47 @@ End Function
 
 
 
+Public Function DropCustomShape(ByRef app As Visio.Application, ByRef page as Visio.Page, shape_opt As Integer, x as integer, y as integer) As Visio.shape
+    Dim stencil As Visio.Document
+    Dim master As Visio.Master
+    Dim shape_str as string
+    Dim droppedShape as visio.shape
+    
+    shape_str = replace("MSSBN","N",cstr(shape_opt))
+
+    Set stencil = app.Documents.OpenEx("C:\Users\jbusst\Documents - local\visiovba\MSSB-stencil.vssx", visOpenHidden)
+    Set master = stencil.Masters(shape_str)
+    Set droppedShape = page.Drop(master, x, y)
+
+    ' Move it so its bottom-left corner is at (x, y)
+    Dim w As Double, h As Double
+    w = droppedShape.CellsU("Width").ResultIU
+    h = droppedShape.CellsU("Height").ResultIU
+
+    ' Set its Pin to bottom left
+    droppedShape.CellsU("PinX").FormulaU = x + w / 2
+    droppedShape.CellsU("PinY").FormulaU = y + h / 2
+
+    set DropCustomShape = droppedShape
+End Function
+
+Public Sub MSSB1(ByRef app As Visio.Application, ByRef page as Visio.Page)
+    Dim x(4) As Float
+    Dim y(4) As Float
+
+    x = Array(169.69, 169.69)
+    y = Array(22.62, 29)
+    
+End Sub
+
+Public Sub MSSB3(ByRef app As Visio.Application, ByRef page as Visio.Page)
+    Dim x(4) As Float
+    Dim y(4) As Float
+
+    x = Array(5.9171, 10.3171, 150.8739, )
+    y = Array(22.62, 29)
+End Sub
+
 Public Sub Connect1(shape1 As Visio.Shape, shape2 As Visio.Shape, direction As String, pin1 As Integer, pin2 As Integer)
     Dim connector As Visio.Shape
     Set connector = shape1.ContainingPage.DrawLine(0, 0, 1, 1)

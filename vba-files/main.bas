@@ -13,25 +13,41 @@ Public Sub Main()
     Dim vis As VApp
     vis = GetVisio()
 
-    ' ExcelDiagram vis.app, vis.page
+    Dim shape1 as visio.shape
+    Dim shape2 as visio.shape
+    Dim shape3 as visio.shape
 
-    Dim shape1 As Visio.Shape, shape2 As Visio.Shape
-    Set shape1 = NewShape(vis.page, 0, 1, 1, 1, "shape 1")
+    set shape1 = DropCustomShape(vis.app, vis.page, 1, 4, 3)
+    ' set shape2 = DropCustomShape(vis.app, vis.page, 3, 12, 0)
+    ' set shape3 = DropCustomShape(vis.app, vis.page, 3, 24, 0)
 
-    For i = 0 To 4
-        AddCPoint shape1, 1, i*0.2
-    Next i
+    DrawLineFromShape shape1
+    ' for i = 0 To shape1.RowCount(visSectionConnectionPts) - 1
+    '     Connect1 shape1, shape2, "right", i+1, 1
+    ' Next i
 
-    Set shape2 = NewShape(vis.page, 5, 4, 1, 1, "shape 2")
-
-    For i = 0 To 4
-        AddCPoint shape2, 0, i*0.2
-    Next i
+    ' connect1 shape2, shape3, "right", 1, 1
+    ' connect1 shape2, shape3, "right", 3, 2
+    ' connect1 shape2, shape3, "right", 2, 5
     
-    Connect1 shape1, shape2, "right", 1, 1
-    Connect1 shape1, shape2, "right", 1, 2
-    Connect1 shape1, shape2, "right", 3, 3
-    Connect1 shape1, shape2, "right", 4, 4
+
+    ' Dim shape1 As Visio.Shape, shape2 As Visio.Shape
+    ' Set shape1 = NewShape(vis.page, 0, 1, 1, 1, "shape 1")
+
+    ' For i = 0 To 4
+    '     AddCPoint shape1, 1, i*0.2
+    ' Next i
+
+    ' Set shape2 = NewShape(vis.page, 5, 4, 1, 1, "shape 2")
+
+    ' For i = 0 To 4
+    '     AddCPoint shape2, 0, i*0.2
+    ' Next i
+    
+    ' Connect1 shape1, shape2, "right", 1, 1
+    ' Connect1 shape1, shape2, "right", 1, 2
+    ' Connect1 shape1, shape2, "right", 3, 3
+    ' Connect1 shape1, shape2, "right", 4, 4
 End Sub
 
 Sub SampleDiagram()
@@ -184,6 +200,7 @@ Public  Function GetVisio() As VApp
         MsgBox "No pages found in the active document.", vbExclamation
         Exit Function
     End If
+
     Set visPage = visApp.ActivePage
 
     PassBack:
@@ -194,3 +211,43 @@ Public  Function GetVisio() As VApp
     Set GetVisio.doc = visDoc
     Set GetVisio.page = visPage
 End Function
+
+
+
+Sub DrawLineFromShape(shape As Visio.Shape)
+    Dim page As Visio.Page
+    Set page = shape.Parent
+    
+    ' Get the local coordinates of the first connection point
+    Dim connX As Double
+    Dim connY As Double
+    connX = shape.Cells("Connections.X1")
+    connY = shape.Cells("Connections.Y1")
+    
+    ' Calculate the page coordinates of the connection point
+    Dim startX As Double
+    Dim startY As Double
+    startX = shape.Cells("PinX") + connX - shape.Cells("LocPinX")
+    startY = shape.Cells("PinY") + connY - shape.Cells("LocPinY")
+    
+    ' Define the points for the line path
+    Dim points(1 To 10) As Double
+    points(1) = startX        ' Starting point
+    points(2) = startY
+    points(3) = startX + 2    ' Extend right by 2 units
+    points(4) = startY
+    points(5) = startX + 2    ' Down by 1 unit
+    points(6) = startY - 1
+    points(7) = startX + 3    ' Right by 1 unit
+    points(8) = startY - 1
+    points(9) = startX + 3    ' Down by 1 unit
+    points(10) = startY - 2
+    
+    ' ' Draw the polyline on the page
+    ' Dim line As Visio.Shape
+    ' Set line = shape.containingpage.DrawPolyline(points, 0)
+    
+    ' ' Glue the beginning of the line to the shape's first connection point
+    ' line.Cells("BeginX").GlueTo shape.Cells("Connections.X1")
+    ' line.Cells("BeginY").GlueTo shape.Cells("Connections.Y1")
+End Sub
