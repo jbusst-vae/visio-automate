@@ -17,11 +17,79 @@ Public Sub Main()
     Dim shape2 as visio.shape
     Dim shape3 as visio.shape
 
-    set shape1 = DropCustomShape(vis.app, vis.page, 1, 4, 3)
-    ' set shape2 = DropCustomShape(vis.app, vis.page, 3, 12, 0)
+    set shape1 = DropCustomShape(vis.app, vis.page, 1, 13, 3)
+    set shape2 = DropCustomShape(vis.app, vis.page, 3, 2, 3)
     ' set shape3 = DropCustomShape(vis.app, vis.page, 3, 24, 0)
 
     DrawLineFromShape shape1
+    DrawLineFromShape shape2
+
+    dim connector as visio.shape
+    set connector = connect1(shape1, shape2, "right", 1, 1)
+
+    Debug.print "\n- Start application -"
+
+    dim x As Double
+    dim y As Double
+    dim index As Integer
+    
+    index = 0
+
+    for i = 1 to 100
+        x = connector.CellsSRC(10, i, 0).Result("mm")
+        y = connector.CellsSRC(10, i, 1).Result("mm")
+
+        if x = 0 and y = 0 and i > 1 then
+            index = i
+            exit for
+        end if 
+
+        ' debug.print x
+        ' debug.print y
+
+    next i
+
+    ' ' shuffle end point down one space
+    ' connector.cellssrc(10, index, 0).formulau = connector.cellssrc(10, index-1, 0).formulau
+    ' connector.cellssrc(10, index, 1).formulau = connector.cellssrc(10, index-1, 1).formulau
+
+    ' ' add a new points in
+    ' connector.cellssrc(10, index-2, 0).formulau = "-500"
+    ' connector.cellssrc(10, index-2, 1).formulau = "50"
+    connector.addrow 10, index, visTagLineTo 
+    connector.addrow 10, index+1, visTagLineTo 
+    connector.addrow 10, index+1, visTagLineTo 
+    connector.cellssrc(10, index, 0).formulau = "-500"
+    connector.cellssrc(10, index, 1).formulau = "50"
+
+    for i = 1 to 100
+        x = connector.CellsSRC(10, i, visX).Result("mm")
+        y = connector.CellsSRC(10, i, visY).Result("mm")
+
+        if x = 0 and y = 0 and i > 1 then
+            exit for
+        end if 
+
+        debug.print x
+        debug.print y
+
+    next i
+
+
+    ' Debug.print connector.CellsSRC(visSectionFirst + 1, 1, 0).Result("mm")
+    ' Debug.print connector.CellsSRC(visSectionFirst + 1, 1, 1).Result("mm")
+    
+
+    ' ' set cell = connector.CellsSRC(visSectionFirst + 1, 1, 1)
+    ' ' connector.CellsSRC(visSectionFirst + 1, 1, 1).Result("mm").formulau = "1 in"
+    
+    ' Debug.print connector.CellsSRC(visSectionFirst + 1, 2, 0).Result("mm")
+    ' Debug.print connector.CellsSRC(visSectionFirst + 1, 2, 1).Result("mm")
+
+    ' Debug.print connector.CellsSRC(visSectionFirst + 1, 3, 0).Result("mm")
+    ' Debug.print connector.CellsSRC(visSectionFirst + 1, 3, 1).Result("mm")
+
+    
     ' for i = 0 To shape1.RowCount(visSectionConnectionPts) - 1
     '     Connect1 shape1, shape2, "right", i+1, 1
     ' Next i

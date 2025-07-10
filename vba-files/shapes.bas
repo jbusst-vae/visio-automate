@@ -110,7 +110,7 @@ Public Sub MSSB3(ByRef app As Visio.Application, ByRef page as Visio.Page)
     y = Array(22.62, 29)
 End Sub
 
-Public Sub Connect1(shape1 As Visio.Shape, shape2 As Visio.Shape, direction As String, pin1 As Integer, pin2 As Integer)
+Public Function Connect1(shape1 As Visio.Shape, shape2 As Visio.Shape, direction As String, pin1 As Integer, pin2 As Integer) As Visio.Shape
     Dim connector As Visio.Shape
     Set connector = shape1.ContainingPage.DrawLine(0, 0, 1, 1)
 
@@ -138,7 +138,9 @@ Public Sub Connect1(shape1 As Visio.Shape, shape2 As Visio.Shape, direction As S
     ' Style the line
     connector.Cells("LinePattern").Formula = "2"
     connector.Cells("LineColor").Formula = "2"
-End Sub
+
+    set connect1 = connector
+End Function
 
 Public Sub Connect2(ByRef shape1 As Visio.Shape, ByRef shape2 As Visio.Shape, direction As String, pinNo As Integer)
     Dim connector As Visio.Shape
